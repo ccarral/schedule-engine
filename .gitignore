@@ -6,3 +6,5 @@ tags
 bin/
 pkg/
 wasm-pack.log
+Session.vim
+
