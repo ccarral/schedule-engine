@@ -76,18 +76,39 @@ where
     }
 
     pub fn free_at(&self, day: &Day, time_range: &TimeRange) -> bool {
+        /* When checking if a schedule is compatible on a given day,
+         * assuming that the time range is well formed,
+         *  (start < end),
+         * we must ensure the following:
+         *
+         * with (my_start, my_end) and (other_start,other_end)
+         *
+         * it should either be that
+         *
+         * my_end <= other_start
+         *
+         * i.e : (07:00, 08:00) is compatible with (08:00,10:00)
+         *
+         * or
+         *
+         * my_start >= other_end
+         *
+         * i.e: (07:00, 08:00) is compatible with (06:00,07:00)
+         *
+         *
+         * */
+
         match self.time_values[*day as usize] {
             Some((my_start, my_end)) => {
                 let (start, end) = time_range;
-                my_start.lt(start) && (my_end.lt(end) || my_end.eq(end))
-                    || (my_start.eq(end) || my_start.gt(end))
+                my_end.le(start) || my_start.ge(end)
             }
             None => true,
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Pool<Id: Eq, D> {
     pub grid_list: Vec<Grid<Id, D>>,
     pub pool_id: Id,
@@ -120,7 +141,7 @@ pub enum Day {
     SUNDAY = 6,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Schedule<Id: Eq + Clone + ToOwned, D: Clone + ToOwned> {
     grids: Vec<Grid<Id, D>>,
 }
@@ -152,5 +173,22 @@ where
 
     pub fn remove_last_added(&mut self) -> Option<Grid<Id, D>> {
         self.grids.pop()
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use crate::grid::Schedule;
+    use crate::utils::*;
+
+    #[test]
+    fn test_try_merge() {
+        let grid_4 = instance_grid_4().unwrap();
+        let grid_5 = instance_grid_5().unwrap();
+
+        let mut schedule_2 = Schedule::new();
+        schedule_2.try_merge(&grid_5);
+        assert!(schedule_2.try_merge(&grid_4).is_err());
     }
 }

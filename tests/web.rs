@@ -3,78 +3,12 @@
 extern crate wasm_bindgen_test;
 use anyhow::Result;
 use chrono::NaiveTime;
-use schedule_engine::{engine::*, grid::*, log};
+use schedule_engine::{engine::*, grid::*, log, utils::*};
 use std::collections::hash_map::HashMap;
 use wasm_bindgen::prelude::JsValue;
 use wasm_bindgen_test::*;
 
 wasm_bindgen_test_configure!(run_in_browser);
-
-fn instance_grid_1() -> Result<Grid<u32, u32>> {
-    Grid::new(
-        1,
-        [
-            Some((
-                NaiveTime::parse_from_str("08:00", "%H:%M").unwrap(),
-                NaiveTime::parse_from_str("09:00", "%H:%M").unwrap(),
-            )),
-            None,
-            None,
-            None,
-            Some((
-                NaiveTime::parse_from_str("08:00", "%H:%M").unwrap(),
-                NaiveTime::parse_from_str("09:00", "%H:%M").unwrap(),
-            )),
-            None,
-            None,
-        ],
-        0,
-    )
-}
-
-fn instance_grid_2() -> Result<Grid<u32, u32>> {
-    Grid::new(
-        2,
-        [
-            Some((
-                NaiveTime::parse_from_str("09:00", "%H:%M").unwrap(),
-                NaiveTime::parse_from_str("10:00", "%H:%M").unwrap(),
-            )),
-            None,
-            None,
-            None,
-            Some((
-                NaiveTime::parse_from_str("07:00", "%H:%M").unwrap(),
-                NaiveTime::parse_from_str("08:00", "%H:%M").unwrap(),
-            )),
-            None,
-            None,
-        ],
-        0,
-    )
-}
-
-fn instance_grid_3() -> Result<Grid<u32, u32>> {
-    Grid::new(
-        3,
-        [
-            Some((
-                NaiveTime::parse_from_str("08:30", "%H:%M").unwrap(),
-                NaiveTime::parse_from_str("11:00", "%H:%M").unwrap(),
-            )),
-            None,
-            Some((
-                NaiveTime::parse_from_str("12:00", "%H:%M").unwrap(),
-                NaiveTime::parse_from_str("13:45", "%H:%M").unwrap(),
-            )),
-            None,
-            None,
-            None,
-            None,
-        ],
-        0,
-    )
-}
 
 #[wasm_bindgen_test]
 fn raises_invalid_time() {
@@ -133,6 +67,13 @@ fn test_try_merge() {
     assert!(schedule.try_merge(&grid_3).is_err());
     assert!(schedule.try_merge(&grid_2).is_ok());
     assert!(schedule.try_merge(&grid_2).is_err());
+
+    let grid_4 = instance_grid_4().unwrap();
+    let grid_5 = instance_grid_5().unwrap();
+
+    let mut schedule_2 = Schedule::new();
+    schedule_2.try_merge(&grid_5);
+    assert!(schedule_2.try_merge(&grid_4).is_err());
 }
 
 #[wasm_bindgen_test]

@@ -6,11 +6,20 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct EngineParams<Id: Eq + Clone, D> {
+    /// List of grids that serve as a starting point for the algorithm.
+    /// It will try to merge these grids into a valid schedule and then
+    /// perform the combinatorial analysis.
     pub seeds: Vec<Grid<Id, D>>,
+    /// Number of grids that will conform a schedule.
     pub bound: usize,
+
+    /// List of pools over which the algorithm will perform the
+    /// combinatorial analysis.
     pub pool_list: Vec<Pool<Id, D>>,
 }
 
+/// Given a list of schedule pools, the engine generates all possible combinations
+/// of pools that satisfy an upper bound and finds all valid paths from these pools.
 pub fn engine_main<Id: Eq + Clone + Debug, D: Clone + Debug>(
     params: EngineParams<Id, D>,
 ) -> Result<Vec<Schedule<Id, D>>> {
@@ -32,20 +41,31 @@ pub fn engine_main<Id: Eq + Clone + Debug, D: Clone + Debug>(
     let mut valid_schedules = vec![];
 
     for mut c in combinations {
-        stack_main(&mut c, &mut valid_schedules)?;
+        stack_main(&mut master_schedule, &mut c, &mut valid_schedules)?;
     }
 
     Ok(valid_schedules)
 }
 
 fn stack_main<K: Eq + PartialEq + Clone + Debug, V: Clone + Debug>(
+    master_schedule: &mut Schedule<K, V>,
     combination: &mut Vec<&Pool<K, V>>,
     schedule_list: &mut Vec<Schedule<K, V>>,
 ) -> Result<()> {
+    // Suppose we have a combination of pools  or "stack" {A,B,C} such that
+    // A -> [a1, a2, ...]
+    // B -> [b1, b2, ...]
+    // C -> [c1, c2, ...]
+    //
+    // (each level is what is refered to as a "stack level")
+    //
+    // Then all we have to do is find all valid traversals of A->B->C
+    // i.e: { [a1,b2,c2], [a2,b1,c1], ...}
+
     if let Some(current_stack_level) = combination.pop() {
         for grid in current_stack_level.grid_list.iter() {
             // Descend down each grid
-            let mut schedule = Schedule::<K, V>::new();
+            let mut schedule = (*master_schedule).clone();
 
             // This should never error as it's the first schedule merged
             schedule.try_merge(grid).unwrap();

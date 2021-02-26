@@ -1,6 +1,6 @@
 pub mod engine;
 pub mod grid;
-mod utils;
+pub mod utils;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
