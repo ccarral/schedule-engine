@@ -3,6 +3,7 @@ name = "schedule-engine"
 version = "0.1.0"
 authors = ["Carlos Carral C. <carloscarral13@gmail.com>"]
 edition = "2018"
+license = "GPL-3.0"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

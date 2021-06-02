@@ -1,3 +1,20 @@
+/**
+ * src/engine.rs
+ * Copyright (c) 2021 Carlos Carral <carloscarral13@gmail.com>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 use crate::grid::{Grid, Pool, Schedule};
 use anyhow::{bail, Result};
 use core::fmt::Debug;
@@ -25,6 +42,20 @@ pub fn engine_main<Id: Eq + Clone + Debug, D: Clone + Debug>(
 ) -> Result<Vec<Schedule<Id, D>>> {
     if params.pool_list.len() < params.bound {
         bail!("Bound can't be larger than length of pool list.");
+    }
+
+    // Check that pools don't have repeated id's
+    for (i, pool) in params.pool_list.iter().enumerate() {
+        for (j, pool_inner) in params.pool_list.iter().enumerate() {
+            if j == i {
+                continue;
+            }
+
+            if pool_inner.pool_id == pool.pool_id {
+                // Found repeated pool, return error
+                bail!("Found repeated pool id. Pool id must be unique for any given pool");
+            }
+        }
     }
 
     // Check that all seeds are coompatible with one another
