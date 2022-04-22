@@ -191,6 +191,10 @@ where
     pub fn remove_last_added(&mut self) -> Option<Grid<Id, D>> {
         self.grids.pop()
     }
+
+    pub fn len(&self) -> usize {
+        self.grids.len()
+    }
 }
 
 #[cfg(test)]

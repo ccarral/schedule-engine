@@ -58,13 +58,14 @@ pub fn engine_main<Id: Eq + Clone + Debug, D: Clone + Debug>(
         }
     }
 
-    // Check that all seeds are coompatible with one another
-
+    // Check that all seeds are compatible with one another
     let mut master_schedule = Schedule::<Id, D>::new();
 
     for s in params.seeds {
         master_schedule.try_merge(&s)?;
     }
+
+    dbg!(&master_schedule);
 
     // Generate combinations
     let combinations = params.pool_list.iter().combinations(params.bound);
@@ -98,11 +99,12 @@ fn stack_main<K: Eq + PartialEq + Clone + Debug, V: Clone + Debug>(
             // Descend down each grid
             let mut schedule = (*master_schedule).clone();
 
-            // This should never error as it's the first schedule merged
-            schedule.try_merge(grid).unwrap();
-            stack_recursive(combination, &mut schedule, schedule_list);
+            if schedule.try_merge(grid).is_ok() {
+                stack_recursive(combination, &mut schedule, schedule_list);
+            }
         }
     } else {
+        // Sould be unreachable
         bail!("Empty stack error.");
     }
 
@@ -116,12 +118,12 @@ fn stack_recursive<K: Eq + PartialEq + Clone + ToOwned + Debug, V: Clone + ToOwn
 ) -> Option<()> {
     if let Some(current_stack_level) = combination.pop() {
         for grid in current_stack_level.grid_list.iter() {
+            // Depth first
             if schedule.try_merge(grid).is_ok() {
-                if stack_recursive(combination, schedule, schedule_list).is_some() {
-                    // Succesful path already cloned into @schedule_list and call stack
-                    // is unwinding. Trim last added Grid and continue iteration.
-                    schedule.remove_last_added();
-                }
+                stack_recursive(combination, schedule, schedule_list);
+                // Trim last added Grid (because schedule.try_merge() was Ok())
+                // and continue iteration.
+                schedule.remove_last_added();
             }
         }
 
@@ -129,6 +131,7 @@ fn stack_recursive<K: Eq + PartialEq + Clone + ToOwned + Debug, V: Clone + ToOwn
         combination.push(current_stack_level);
         return None;
     } else {
+        // Reached the end of the stack, start unwinding
         schedule_list.push(schedule.to_owned());
         return Some(());
     }
@@ -136,7 +139,6 @@ fn stack_recursive<K: Eq + PartialEq + Clone + ToOwned + Debug, V: Clone + ToOwn
 
 #[cfg(test)]
 mod test {
-
     use super::*;
 
     #[test]
