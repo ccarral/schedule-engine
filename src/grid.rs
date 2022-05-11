@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 /**
  * src/grid.rs
  * Copyright (c) 2021 Carlos Carral <carloscarral13@gmail.com>
@@ -123,8 +125,19 @@ where
             None => true,
         }
     }
+
+    pub fn data(&self) -> &D {
+        &self.data
+    }
 }
 
+/// A pool is a data structure that stores Grids that share the same Id.
+/// In other words, all the groups of the same subject.
+/// i.e:
+/// Pool of Spanish groups:
+///     * Spanish with Mr. Lopez Mon - Tues @ 09:00
+///     * Spanish with Mrs. Simone Fri - Sat @ 14:00
+///
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Pool<Id: Eq, D> {
     pub grid_list: Vec<Grid<Id, D>>,
@@ -144,6 +157,10 @@ where
 
     pub fn push(&mut self, grid: Grid<Id, D>) {
         self.grid_list.push(grid);
+    }
+
+    pub fn grids(&self) -> &[Grid<Id, D>] {
+        &self.grid_list
     }
 }
 
