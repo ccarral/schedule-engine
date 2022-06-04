@@ -40,8 +40,8 @@ pub struct EngineParams<Id: Eq + Clone, D> {
 pub fn engine_main<Id: Eq + Clone + Debug, D: Clone + Debug>(
     params: EngineParams<Id, D>,
 ) -> Result<Vec<Schedule<Id, D>>> {
-    if params.pool_list.len() < params.bound {
-        bail!("Bound can't be larger than length of pool list.");
+    if params.bound > params.pool_list.len() + params.seeds.len() {
+        bail!("Bound can't be larger than length of pool list + length of seeds.");
     }
 
     // Check that pools don't have repeated id's
